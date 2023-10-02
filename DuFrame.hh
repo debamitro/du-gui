@@ -6,6 +6,7 @@
 #include "wx/wx.h"
 #include "wx/thread.h"
 #include "wx/grid.h"
+#include "wx/statusbr.h"
 
 class DuFrame : public wxFrame, wxThreadHelper
 {
@@ -38,6 +39,7 @@ private:
   wxCriticalSection dirdata_cs;
   wxTextCtrl * addressbar;
   wxGrid * grid;
+  wxStatusBar * statusbar;
   wxDECLARE_EVENT_TABLE ();
 };
 

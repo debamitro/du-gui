@@ -26,13 +26,13 @@ DuFrame::DuFrame ()
     sorted_candidates (),
     dirdata_cs (),
   addressbar (nullptr),
-    grid (nullptr)
+  grid (nullptr),
+  statusbar (nullptr)
 {
   auto sizer = new wxBoxSizer (wxVERTICAL);
 
   auto sizer2 = new wxBoxSizer (wxHORIZONTAL);
   sizer->Add (sizer2, wxSizerFlags().Expand());
-  //topdir = "/Users/debamitro/Downloads";
   addressbar = new wxTextCtrl (this, wxID_ANY, topdir);
   sizer2->Add (addressbar, wxEXPAND);
 
@@ -41,13 +41,17 @@ DuFrame::DuFrame ()
   grid = new wxGrid (this, wxID_ANY);
   grid->CreateGrid (2, 2);
   sizer->Add (grid, wxSizerFlags().Expand());
+  statusbar = new wxStatusBar (this, wxID_ANY);
+  SetStatusBar (statusbar);
   SetSizerAndFit (sizer);
-
 }
 
 void DuFrame::StartThread(wxCommandEvent & evt)
 {
   topdir = strdup(addressbar->GetValue().c_str());
+  candidates.clear ();
+  sorted_candidates.clear ();
+  grid->ClearGrid ();
 
   if (CreateThread(wxTHREAD_JOINABLE) != wxTHREAD_NO_ERROR)
     {
@@ -61,6 +65,7 @@ void DuFrame::StartThread(wxCommandEvent & evt)
       wxLogError("Could not run the worker thread!");
       return;
     }
+  SetStatusText("Searching");
 }
 
 wxThread::ExitCode DuFrame::Entry ()
@@ -75,7 +80,8 @@ wxThread::ExitCode DuFrame::Entry ()
       wxQueueEvent(GetEventHandler(), new wxThreadEvent(wxEVT_THREAD, GOT_DATA));
       wxMilliSleep (100);
     }
-  
+
+  SetStatusText ("Done");
   return 0;
 }
 
@@ -134,7 +140,7 @@ void DuFrame::RelayBiggestFile ()
   std::sort (sorted_candidates.begin (), sorted_candidates.end(),
 	     [](Dir_and_size a, Dir_and_size b)
 	     {
-	       return a.size < b.size;
+	       return a.size > b.size;
 	     });
 }
 
@@ -143,7 +149,10 @@ void DuFrame::GotData (wxThreadEvent& evt)
   grid->ClearGrid();
 
   wxCriticalSectionLocker lock (dirdata_cs);
-  grid->InsertRows (0, sorted_candidates.size());
+  if (grid->GetNumberRows () < sorted_candidates.size ())
+    {
+      grid->InsertRows (0, sorted_candidates.size() - grid->GetNumberRows ());
+    }
   int i = 0;
   for (auto dir_and_size : sorted_candidates)
     {

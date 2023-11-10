@@ -23,7 +23,7 @@ private:
     bool FindNextBiggestFile ();
     void RelayBiggestFile ();
     wxThread::ExitCode Entry ();
-
+  std::string FormattedFileSize (size_t);
     const char * topdir;
 
     struct Dir_and_size {

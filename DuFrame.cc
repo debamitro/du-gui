@@ -46,8 +46,11 @@ DuFrame::DuFrame ()
 
     grid = new wxGrid (this, wxID_ANY);
     grid->CreateGrid (2, 2);
+    grid->SetColLabelValue (0, "Directory");
+    grid->SetColLabelValue (1, "Size");
     sizer->Add (grid, wxSizerFlags().Expand());
     statusbar = new wxStatusBar (this, wxID_ANY);
+    statusbar->SetFieldsCount (2);
     SetStatusBar (statusbar);
     SetSizerAndFit (sizer);
 }
@@ -107,6 +110,10 @@ wxThread::ExitCode DuFrame::Entry ()
             RelayBiggestFile ();
         }
 
+	std::string commentary = "Found ";
+	commentary += std::to_string (candidates.size());
+	commentary += " files";
+	SetStatusText (commentary, 1);
         wxQueueEvent(GetEventHandler(), new wxThreadEvent(wxEVT_THREAD, GOT_DATA));
         wxMilliSleep (100);
     }
@@ -187,7 +194,27 @@ void DuFrame::GotData (wxThreadEvent& evt)
     for (auto dir_and_size : sorted_candidates)
     {
         grid->SetCellValue (i, 0, dir_and_size.name);
-        grid->SetCellValue (i, 1, wxString(std::to_string(dir_and_size.size)));
+        grid->SetCellValue (i, 1, FormattedFileSize(dir_and_size.size));
         ++i;
     }
+}
+
+std::string DuFrame::FormattedFileSize (size_t sz)
+{
+  const char * units[4] = {"B","KB","MB","GB"};
+  size_t readable = sz;
+  int i = 0;
+
+  if (readable >= 1024)
+    {
+  do
+    {
+      readable /= 1024;
+      ++i;
+    } while (readable > 1024);
+    }
+  
+  std::string s = std::to_string(readable);
+  s += units[i];
+  return s;
 }

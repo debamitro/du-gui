@@ -9,12 +9,14 @@
 enum
 {
     GOT_DATA = 500,
-    START_THREAD
+    START_THREAD,
+    STOP_THREAD
 };
 
 wxBEGIN_EVENT_TABLE (DuFrame, wxFrame)
     EVT_THREAD (GOT_DATA, DuFrame::GotData)
     EVT_BUTTON (START_THREAD, DuFrame::StartThread)
+    EVT_BUTTON (STOP_THREAD, DuFrame::StopThread)
 wxEND_EVENT_TABLE ()
 
 
@@ -36,8 +38,12 @@ DuFrame::DuFrame ()
     addressbar = new wxTextCtrl (this, wxID_ANY, topdir);
     sizer2->Add (addressbar, wxEXPAND);
 
-    auto button = new wxButton (this, START_THREAD, "go");
-    sizer2->Add (button, wxEXPAND);
+    auto gobutton = new wxButton (this, START_THREAD, "go");
+    sizer2->Add (gobutton, wxEXPAND);
+
+    auto stopbutton = new wxButton (this, STOP_THREAD, "stop");
+    sizer2->Add (stopbutton, wxEXPAND);
+
     grid = new wxGrid (this, wxID_ANY);
     grid->CreateGrid (2, 2);
     sizer->Add (grid, wxSizerFlags().Expand());
@@ -68,10 +74,34 @@ void DuFrame::StartThread(wxCommandEvent & evt)
     SetStatusText("Searching");
 }
 
+void DuFrame::StopThread (wxCommandEvent & evt)
+{
+    if (GetThread() && GetThread()->IsRunning())
+    {
+        GetThread()->Delete();
+    }
+}
+
+void DuFrame::OnClose (wxCloseEvent & evt)
+{
+    if (GetThread() && GetThread()->IsRunning())
+    {
+        GetThread()->Wait();
+    }
+
+    Destroy();
+}
+
 wxThread::ExitCode DuFrame::Entry ()
 {
     while (FindNextBiggestFile ())
     {
+        if (GetThread()->TestDestroy())
+        {
+            SetStatusText ("Stopped");
+            return 0;
+        }
+
         {
             wxCriticalSectionLocker lock(dirdata_cs);
             RelayBiggestFile ();

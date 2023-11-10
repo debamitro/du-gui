@@ -14,9 +14,11 @@ public:
     DuFrame ();
     ~DuFrame () = default;
 
+    void OnClose (wxCloseEvent & evt);
     void GotData (wxThreadEvent& evt);
 
     void StartThread (wxCommandEvent & evt);
+    void StopThread (wxCommandEvent & evt);
 private:
     bool FindNextBiggestFile ();
     void RelayBiggestFile ();

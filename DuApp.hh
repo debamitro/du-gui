@@ -6,9 +6,9 @@
 class DuApp : public wxApp
 {
 public:
-  DuApp () = default;
-  ~DuApp () = default;
-  bool OnInit ();
+    DuApp () = default;
+    ~DuApp () = default;
+    bool OnInit ();
 };
 
 #endif

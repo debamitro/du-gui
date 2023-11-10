@@ -1,5 +1,5 @@
 CFLAGS := `$(WX_HOME)/wx-config --cflags` -std=c++14 -g
-LIBS := `$(WX_HOME)/wx-config --libs core,base`
+LIBS := `$(WX_HOME)/wx-config --libs core,base,adv`
 
 all: duapp
 

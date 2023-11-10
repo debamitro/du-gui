@@ -6,14 +6,14 @@
 
 bool DuApp::OnInit ()
 {
-  if (!wxApp::OnInit())
+    if (!wxApp::OnInit())
     {
-      return false;
+        return false;
     }
 
-  auto frame = new DuFrame();
+    auto frame = new DuFrame();
 
-  frame->Show (true);
+    frame->Show (true);
 
-  return true;
+    return true;
 }

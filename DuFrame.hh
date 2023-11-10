@@ -11,36 +11,36 @@
 class DuFrame : public wxFrame, wxThreadHelper
 {
 public:
-  DuFrame ();
-  ~DuFrame () = default;
+    DuFrame ();
+    ~DuFrame () = default;
 
-  void GotData (wxThreadEvent& evt);
+    void GotData (wxThreadEvent& evt);
 
-  void StartThread (wxCommandEvent & evt);
+    void StartThread (wxCommandEvent & evt);
 private:
-  bool FindNextBiggestFile ();
-  void RelayBiggestFile ();
-  wxThread::ExitCode Entry ();
+    bool FindNextBiggestFile ();
+    void RelayBiggestFile ();
+    wxThread::ExitCode Entry ();
 
-  const char * topdir;
+    const char * topdir;
 
-  struct Dir_and_size {
-    Dir_and_size (const wxString & first, long second)
-      : name (first),
-	size (second),
-	opened (false) {}
-    wxString name;
-    long size;
-    bool opened;
-  };
-  
-  std::deque<Dir_and_size> candidates;
-  std::deque<Dir_and_size> sorted_candidates;
-  wxCriticalSection dirdata_cs;
-  wxTextCtrl * addressbar;
-  wxGrid * grid;
-  wxStatusBar * statusbar;
-  wxDECLARE_EVENT_TABLE ();
+    struct Dir_and_size {
+        Dir_and_size (const wxString & first, long second)
+            : name (first),
+              size (second),
+              opened (false) {}
+        wxString name;
+        long size;
+        bool opened;
+    };
+
+    std::deque<Dir_and_size> candidates;
+    std::deque<Dir_and_size> sorted_candidates;
+    wxCriticalSection dirdata_cs;
+    wxTextCtrl * addressbar;
+    wxGrid * grid;
+    wxStatusBar * statusbar;
+    wxDECLARE_EVENT_TABLE ();
 };
 
 #endif

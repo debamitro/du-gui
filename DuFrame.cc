@@ -85,7 +85,7 @@ void DuFrame::StopThread (wxCommandEvent & evt)
     if (GetThread() && GetThread()->IsRunning())
     {
         GetThread()->Delete();
-	SetStatusText ("Stopped");
+        SetStatusText ("Stopped");
     }
 }
 
@@ -182,17 +182,19 @@ void DuFrame::RelayBiggestFile ()
 
 void DuFrame::GotData (wxThreadEvent& evt)
 {
-  std::string commentary = "Processed ";
-  commentary += std::to_string (candidates.size());
-  commentary += " files";
-  SetStatusText (commentary, 1);
-     grid->ClearGrid();
+    std::string commentary = "Processed ";
+    commentary += std::to_string (candidates.size());
+    commentary += " files";
+    SetStatusText (commentary, 1);
+    grid->ClearGrid();
 
     wxCriticalSectionLocker lock (dirdata_cs);
     sorted_candidates.erase(std::remove_if (sorted_candidates.begin(),
-		    sorted_candidates.end(),
-					    [](const Dir_and_size & dirsize) { return dirsize.size == 0; }),
-			    sorted_candidates.end());
+                                            sorted_candidates.end(),
+    [](const Dir_and_size & dirsize) {
+        return dirsize.size == 0;
+    }),
+    sorted_candidates.end());
     if (grid->GetNumberRows () < sorted_candidates.size ())
     {
         grid->InsertRows (0, sorted_candidates.size() - grid->GetNumberRows ());

@@ -3,18 +3,21 @@
 #include "wx/dir.h"
 #include <sys/stat.h>
 #include <iostream>
+#include <algorithm>
 
 #include "DuFrame.hh"
 
 enum
 {
     GOT_DATA = 500,
+    DONE_SEARCHING,
     START_THREAD,
     STOP_THREAD
 };
 
 wxBEGIN_EVENT_TABLE (DuFrame, wxFrame)
     EVT_THREAD (GOT_DATA, DuFrame::GotData)
+    EVT_THREAD (DONE_SEARCHING, DuFrame::DoneSearching)
     EVT_BUTTON (START_THREAD, DuFrame::StartThread)
     EVT_BUTTON (STOP_THREAD, DuFrame::StopThread)
 wxEND_EVENT_TABLE ()
@@ -82,6 +85,7 @@ void DuFrame::StopThread (wxCommandEvent & evt)
     if (GetThread() && GetThread()->IsRunning())
     {
         GetThread()->Delete();
+	SetStatusText ("Stopped");
     }
 }
 
@@ -101,7 +105,6 @@ wxThread::ExitCode DuFrame::Entry ()
     {
         if (GetThread()->TestDestroy())
         {
-            SetStatusText ("Stopped");
             return 0;
         }
 
@@ -110,15 +113,11 @@ wxThread::ExitCode DuFrame::Entry ()
             RelayBiggestFile ();
         }
 
-	std::string commentary = "Found ";
-	commentary += std::to_string (candidates.size());
-	commentary += " files";
-	SetStatusText (commentary, 1);
         wxQueueEvent(GetEventHandler(), new wxThreadEvent(wxEVT_THREAD, GOT_DATA));
         wxMilliSleep (100);
     }
 
-    SetStatusText ("Done");
+    wxQueueEvent(GetEventHandler(), new wxThreadEvent(wxEVT_THREAD, DONE_SEARCHING));
     return 0;
 }
 
@@ -183,9 +182,17 @@ void DuFrame::RelayBiggestFile ()
 
 void DuFrame::GotData (wxThreadEvent& evt)
 {
-    grid->ClearGrid();
+  std::string commentary = "Processed ";
+  commentary += std::to_string (candidates.size());
+  commentary += " files";
+  SetStatusText (commentary, 1);
+     grid->ClearGrid();
 
     wxCriticalSectionLocker lock (dirdata_cs);
+    sorted_candidates.erase(std::remove_if (sorted_candidates.begin(),
+		    sorted_candidates.end(),
+					    [](const Dir_and_size & dirsize) { return dirsize.size == 0; }),
+			    sorted_candidates.end());
     if (grid->GetNumberRows () < sorted_candidates.size ())
     {
         grid->InsertRows (0, sorted_candidates.size() - grid->GetNumberRows ());
@@ -199,22 +206,27 @@ void DuFrame::GotData (wxThreadEvent& evt)
     }
 }
 
+void DuFrame::DoneSearching (wxThreadEvent & evt)
+{
+    SetStatusText ("Done");
+}
+
 std::string DuFrame::FormattedFileSize (size_t sz)
 {
-  const char * units[4] = {"B","KB","MB","GB"};
-  size_t readable = sz;
-  int i = 0;
+    const char * units[4] = {"B","KB","MB","GB"};
+    size_t readable = sz;
+    int i = 0;
 
-  if (readable >= 1024)
+    if (readable >= 1024)
     {
-  do
-    {
-      readable /= 1024;
-      ++i;
-    } while (readable > 1024);
+        do
+        {
+            readable /= 1024;
+            ++i;
+        } while (readable > 1024);
     }
-  
-  std::string s = std::to_string(readable);
-  s += units[i];
-  return s;
+
+    std::string s = std::to_string(readable);
+    s += units[i];
+    return s;
 }

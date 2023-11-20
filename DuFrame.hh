@@ -16,6 +16,7 @@ public:
 
     void OnClose (wxCloseEvent & evt);
     void GotData (wxThreadEvent& evt);
+    void DoneSearching (wxThreadEvent& evt);
 
     void StartThread (wxCommandEvent & evt);
     void StopThread (wxCommandEvent & evt);
@@ -23,7 +24,7 @@ private:
     bool FindNextBiggestFile ();
     void RelayBiggestFile ();
     wxThread::ExitCode Entry ();
-  std::string FormattedFileSize (size_t);
+    std::string FormattedFileSize (size_t);
     const char * topdir;
 
     struct Dir_and_size {

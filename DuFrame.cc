@@ -1,6 +1,7 @@
 #include <sys/stat.h>
 #include <iostream>
 #include <algorithm>
+#include <unistd.h>
 
 #include "DuFrame.hh"
 
@@ -8,6 +9,7 @@
 #include "wx/grid.h"
 #include "wx/dir.h"
 #include "wx/dirdlg.h"
+#include "wx/filename.h"
 
 enum
 {
@@ -27,10 +29,10 @@ wxBEGIN_EVENT_TABLE (DuFrame, wxFrame)
 wxEND_EVENT_TABLE ()
 
 
-DuFrame::DuFrame ()
+DuFrame::DuFrame (const char * start_dir)
     : wxFrame (nullptr, wxID_ANY, "Disk Usage"),
       wxThreadHelper (),
-      topdir (nullptr),
+      topdir (start_dir),
       candidates (),
       sorted_candidates (),
       dirdata_cs (),
@@ -45,6 +47,15 @@ DuFrame::DuFrame ()
 
     auto dirbutton = new wxButton (this, SELECT_DIR, "open");
     sizer2->Add (dirbutton, wxEXPAND);
+
+    if (topdir != nullptr && strcmp (topdir, "") == 0)
+    {
+        topdir = wxGetHomeDir();
+        if (topdir == nullptr || strcmp(topdir, "") == 0)
+        {
+            topdir = getcwd (nullptr, 0);
+        }
+    }
 
     addressbar = new wxTextCtrl (this, wxID_ANY, topdir);
     sizer2->Add (addressbar, wxEXPAND);
@@ -171,13 +182,16 @@ bool DuFrame::FindNextBiggestFile ()
             fullpath += filename;
             if (stat (fullpath.c_str (), &st) == 0)
             {
-                if ((st.st_mode & S_IFDIR) != 0)
+                if ((st.st_mode & S_IFLNK) != S_IFLNK)
                 {
-                    candidates.emplace_back (Dir_and_size (fullpath, 0));
-                }
-                else if ((st.st_mode & S_IFREG) != 0)
-                {
-                    one_file_or_dir->size += st.st_size;
+                    if ((st.st_mode & S_IFDIR) != 0)
+                    {
+                        candidates.emplace_back (Dir_and_size (fullpath, 0));
+                    }
+                    else if ((st.st_mode & S_IFREG) != 0)
+                    {
+                        one_file_or_dir->size += st.st_size;
+                    }
                 }
             }
 

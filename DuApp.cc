@@ -11,7 +11,7 @@ bool DuApp::OnInit ()
         return false;
     }
 
-    auto frame = new DuFrame();
+    auto frame = new DuFrame(argc > 1 ? argv[1] : "");
 
     frame->Show (true);
 

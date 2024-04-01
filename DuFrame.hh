@@ -11,7 +11,7 @@
 class DuFrame : public wxFrame, wxThreadHelper
 {
 public:
-    DuFrame ();
+    DuFrame (const char *);
     ~DuFrame () = default;
 
     void OnClose (wxCloseEvent & evt);

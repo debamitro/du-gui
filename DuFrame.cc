@@ -1,16 +1,19 @@
-#include "wx/wx.h"
-#include "wx/grid.h"
-#include "wx/dir.h"
 #include <sys/stat.h>
 #include <iostream>
 #include <algorithm>
 
 #include "DuFrame.hh"
 
+#include "wx/wx.h"
+#include "wx/grid.h"
+#include "wx/dir.h"
+#include "wx/dirdlg.h"
+
 enum
 {
     GOT_DATA = 500,
     DONE_SEARCHING,
+    SELECT_DIR,
     START_THREAD,
     STOP_THREAD
 };
@@ -18,6 +21,7 @@ enum
 wxBEGIN_EVENT_TABLE (DuFrame, wxFrame)
     EVT_THREAD (GOT_DATA, DuFrame::GotData)
     EVT_THREAD (DONE_SEARCHING, DuFrame::DoneSearching)
+    EVT_BUTTON (SELECT_DIR, DuFrame::SelectTopdir)
     EVT_BUTTON (START_THREAD, DuFrame::StartThread)
     EVT_BUTTON (STOP_THREAD, DuFrame::StopThread)
 wxEND_EVENT_TABLE ()
@@ -38,6 +42,10 @@ DuFrame::DuFrame ()
 
     auto sizer2 = new wxBoxSizer (wxHORIZONTAL);
     sizer->Add (sizer2, wxSizerFlags().Expand());
+
+    auto dirbutton = new wxButton (this, SELECT_DIR, "open");
+    sizer2->Add (dirbutton, wxEXPAND);
+    
     addressbar = new wxTextCtrl (this, wxID_ANY, topdir);
     sizer2->Add (addressbar, wxEXPAND);
 
@@ -56,6 +64,16 @@ DuFrame::DuFrame ()
     statusbar->SetFieldsCount (2);
     SetStatusBar (statusbar);
     SetSizerAndFit (sizer);
+}
+
+void DuFrame::SelectTopdir (wxCommandEvent & evt)
+{
+  wxDirDialog dlg (this, "Select a directory");
+
+  if (dlg.ShowModal() == wxID_OK)
+    {
+      addressbar->ChangeValue(dlg.GetPath());
+    }
 }
 
 void DuFrame::StartThread(wxCommandEvent & evt)

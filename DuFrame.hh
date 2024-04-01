@@ -18,6 +18,7 @@ public:
     void GotData (wxThreadEvent& evt);
     void DoneSearching (wxThreadEvent& evt);
 
+    void SelectTopdir (wxCommandEvent & evt);
     void StartThread (wxCommandEvent & evt);
     void StopThread (wxCommandEvent & evt);
 private:

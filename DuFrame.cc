@@ -45,7 +45,7 @@ DuFrame::DuFrame ()
 
     auto dirbutton = new wxButton (this, SELECT_DIR, "open");
     sizer2->Add (dirbutton, wxEXPAND);
-    
+
     addressbar = new wxTextCtrl (this, wxID_ANY, topdir);
     sizer2->Add (addressbar, wxEXPAND);
 
@@ -68,11 +68,11 @@ DuFrame::DuFrame ()
 
 void DuFrame::SelectTopdir (wxCommandEvent & evt)
 {
-  wxDirDialog dlg (this, "Select a directory");
+    wxDirDialog dlg (this, "Select a directory");
 
-  if (dlg.ShowModal() == wxID_OK)
+    if (dlg.ShowModal() == wxID_OK)
     {
-      addressbar->ChangeValue(dlg.GetPath());
+        addressbar->ChangeValue(dlg.GetPath());
     }
 }
 

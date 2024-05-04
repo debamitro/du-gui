@@ -29,12 +29,14 @@ private:
     const char * topdir;
 
     struct Dir_and_size {
-        Dir_and_size (const wxString & first, long second)
+        Dir_and_size (const wxString & first, Dir_and_size * second)
             : name (first),
-              size (second),
+              size (0),
+              parent (second),
               opened (false) {}
         wxString name;
         long size;
+        Dir_and_size * parent;
         bool opened;
     };
 

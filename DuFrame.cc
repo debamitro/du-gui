@@ -100,7 +100,7 @@ void DuFrame::StartThread(wxCommandEvent & evt)
         return;
     }
 
-    candidates.emplace_back (Dir_and_size (topdir, 0));
+    candidates.emplace_back (Dir_and_size (topdir, nullptr));
     if (GetThread()->Run() != wxTHREAD_NO_ERROR)
     {
         wxLogError("Could not run the worker thread!");
@@ -174,6 +174,7 @@ bool DuFrame::FindNextBiggestFile ()
     {
         wxString filename;
         bool cont = dir.GetFirst (&filename);
+        const auto old_size = one_file_or_dir->size;
         while (cont)
         {
             struct stat st;
@@ -186,7 +187,7 @@ bool DuFrame::FindNextBiggestFile ()
                 {
                     if ((st.st_mode & S_IFDIR) != 0)
                     {
-                        candidates.emplace_back (Dir_and_size (fullpath, 0));
+                        candidates.emplace_back (Dir_and_size (fullpath, &(*one_file_or_dir)));
                     }
                     else if ((st.st_mode & S_IFREG) != 0)
                     {
@@ -196,6 +197,13 @@ bool DuFrame::FindNextBiggestFile ()
             }
 
             cont = dir.GetNext (&filename);
+        }
+        const auto increase = one_file_or_dir->size - old_size;
+        Dir_and_size * parent = one_file_or_dir->parent;
+        while (parent != nullptr)
+        {
+            parent->size += increase;
+            parent = parent->parent;
         }
     }
 
